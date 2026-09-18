@@ -4,6 +4,8 @@ The companion files for the [Valheim Droplet guide](https://www.tylor.nz/content
 
 This is for a small group that can administer an Ubuntu server. It does not add mods or a web panel. Use the guide for the DigitalOcean firewall, SSH, player join check, and restoration test.
 
+This README contains an affiliate link. If you sign up through it, I may earn a commission at no extra cost to you. If a Droplet fits your group, [Visit DigitalOcean](https://www.tylor.nz/go/digitalocean?utm_source=github&utm_medium=affiliate&utm_campaign=digitalocean-guides&utm_content=deploy-valheim-server-digitalocean&product=droplets&placement=companion-readme&variant=valheim-server&locale=en). Check the current Droplet price, backups, and transfer costs in the control panel before you create a server.
+
 ## Install the files
 
 After the guide has installed the Valheim server under `/opt/valheim/server` and created the `valheim` user:
