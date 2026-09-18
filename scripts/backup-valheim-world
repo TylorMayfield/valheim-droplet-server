@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+SERVICE=valheim
+ENV_FILE=/etc/valheim/server.env
+BACKUP_DIR=/var/backups/valheim
+
+[[ $EUID -eq 0 ]] || { echo "Run with sudo." >&2; exit 1; }
+[[ -r "$ENV_FILE" ]] || { echo "Missing $ENV_FILE." >&2; exit 1; }
+
+set -a
+. "$ENV_FILE"
+set +a
+
+[[ -n "${SAVE_DIR:-}" && -d "$SAVE_DIR" ]] || {
+  echo "SAVE_DIR is missing or is not a directory: ${SAVE_DIR:-unset}" >&2
+  exit 1
+}
+
+was_running=false
+resume_server() {
+  if [[ "$was_running" == true ]]; then systemctl start "$SERVICE"; fi
+}
+trap resume_server EXIT
+
+if systemctl is-active --quiet "$SERVICE"; then
+  was_running=true
+  systemctl stop "$SERVICE"
+fi
+[[ "$(systemctl show -p ActiveState --value "$SERVICE")" == inactive ]] || {
+  echo "Valheim did not stop cleanly." >&2
+  exit 1
+}
+
+install -d -o root -g root -m 700 "$BACKUP_DIR"
+stamp=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+archive="$BACKUP_DIR/world-$stamp.tar.gz"
+tar -C "$(dirname "$SAVE_DIR")" -czf "$archive" "$(basename "$SAVE_DIR")"
+tar -tzf "$archive" | sed -n '1,40p'
+
+resume_server
+was_running=false
+trap - EXIT
+echo "Created $archive"

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SERVICE=valheim
+SERVER_USER=valheim
+SERVER_DIR=/opt/valheim/server
+
+[[ $EUID -eq 0 ]] || { echo "Run with sudo." >&2; exit 1; }
+command -v steamcmd >/dev/null || { echo "steamcmd is not installed." >&2; exit 1; }
+
+was_running=false
+resume_server() {
+  if [[ "$was_running" == true ]]; then systemctl start "$SERVICE"; fi
+}
+trap resume_server EXIT
+
+if systemctl is-active --quiet "$SERVICE"; then
+  was_running=true
+  systemctl stop "$SERVICE"
+fi
+
+sudo -u "$SERVER_USER" steamcmd \
+  +@sSteamCmdForcePlatformType linux \
+  +force_install_dir "$SERVER_DIR" \
+  +login anonymous \
+  +app_update 896660 validate \
+  +quit
+
+resume_server
+was_running=false
+trap - EXIT
+journalctl -u "$SERVICE" -n 80 --no-pager

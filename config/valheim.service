@@ -1,0 +1,20 @@
+[Unit]
+Description=Valheim dedicated server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=valheim
+Group=valheim
+WorkingDirectory=/opt/valheim/server
+EnvironmentFile=/etc/valheim/server.env
+ExecStart=/opt/valheim/server/start-valheim.sh
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=120
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target
